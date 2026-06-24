@@ -622,8 +622,6 @@ int main(int argc, char* argv[])
                 smallAsteroid.setPosition(asteroid.position);
                 smallAsteroid.setRotation(sf::radians(asteroid.angle));
                 window.draw(smallAsteroid);
-                std::print("Rotation: {}\n", asteroid.rotationDirection);
-                std::print("Angle: {}\n", asteroid.angle);
             }
             else if (asteroid.size == 2) {
                 mediumAsteroid.setPosition(asteroid.position);
