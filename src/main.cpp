@@ -17,7 +17,6 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <imgui.h>
 #include <imgui-SFML.h>
-#include <random>
 
 const bool debug = true;
 const int windowWidth = 1920;
@@ -172,7 +171,7 @@ float randomRotation()
 void spawnAsteroid(std::vector<Asteroid>& asteroids, sf::Vector2f position, sf::Vector2f velocity, int size)
 {
     float radius;
-    float rotationDirection = randomRotation();
+    float rotation = randomRotation();
     switch (size) {
         case 1:
             radius = 25.f;
@@ -185,7 +184,7 @@ void spawnAsteroid(std::vector<Asteroid>& asteroids, sf::Vector2f position, sf::
             break;
     }
 
-    asteroids.push_back(Asteroid{position, velocity, size, radius, rotationDirection});
+    asteroids.push_back(Asteroid{position, velocity, size, radius, rotation});
 }
 
 /* Spawns three bits of debris at position with random velocity */
@@ -623,6 +622,8 @@ int main(int argc, char* argv[])
                 smallAsteroid.setPosition(asteroid.position);
                 smallAsteroid.setRotation(sf::radians(asteroid.angle));
                 window.draw(smallAsteroid);
+                std::print("Rotation: {}\n", asteroid.rotationDirection);
+                std::print("Angle: {}\n", asteroid.angle);
             }
             else if (asteroid.size == 2) {
                 mediumAsteroid.setPosition(asteroid.position);
