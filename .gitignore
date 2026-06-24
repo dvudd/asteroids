@@ -4,3 +4,6 @@ out
 .idea
 .vs
 .vscode
+
+imgui.ini
+/build

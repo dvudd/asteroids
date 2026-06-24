@@ -11,17 +11,17 @@ jobs:
     name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
     runs-on: ${{ matrix.platform.os }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-        - { name: Windows,     os: windows-latest }
-        - { name: Linux GCC,   os: ubuntu-latest }
-        - { name: Linux Clang, os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: macOS,       os: macos-latest  }
-        config:
-        - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
-        - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
+  strategy:
+    fail-fast: false
+    matrix:
+      platform:
+      - { name: Windows,     os: windows-latest }
+      - { name: Linux GCC,   os: ubuntu-latest, flags: -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_STANDARD_REQUIRED=ON }
+      - { name: Linux Clang, os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=23 -DCMAKE_CXX_STANDARD_REQUIRED=ON }
+      - { name: macOS,       os: macos-latest }
+      config:
+      - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
+      - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
 
     steps:
     - name: Install Linux Dependencies
