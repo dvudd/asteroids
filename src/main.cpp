@@ -1,9 +1,10 @@
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <print>
+#include <random>
 #include <string>
 #include <vector>
-#include <cmath>
-#include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -98,6 +99,17 @@ struct Debris
     }
 };
 
+/* Returns a random integer between min & max */
+int randomInt(int min, int max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> distr(min, max);
+    int random = distr(gen);
+
+    return random;
+}
+
 sf::Vector2f round(const sf::Vector2f vector)
 {
     return sf::Vector2f{ std::round(vector.x), std::round(vector.y) };
@@ -107,9 +119,9 @@ sf::Vector2f round(const sf::Vector2f vector)
 sf::Vector2f randomPosition()
 {
     // Random spawnpoint generator
-    int randomSide = static_cast<int>(1 + ( std::rand() % ( 4 - 1 + 1 )));
-    int randomHeight = static_cast<int>(1 + (std::rand() % ( windowHeight -1 +1)));
-    int randomWidth = static_cast<int>(1 + (std::rand() % ( windowWidth -1 +1)));
+    int randomSide = randomInt(1, 4);
+    int randomHeight = randomInt(1, windowHeight);
+    int randomWidth = randomInt(1, windowWidth);
     float width = windowWidth;
     float height = windowHeight;
 
@@ -496,7 +508,7 @@ int main(int argc, char* argv[])
         }
 
         // Spawn enemies
-        int enemySpawnTimer = static_cast<int>(2000 + (std::rand() % ( 5000 )));
+        int enemySpawnTimer = randomInt(2000, 5000);
         if (enemyCooldown.getElapsedTime().asMilliseconds() >= enemySpawnTimer)
         {
             spawnAsteroid(asteroids, randomPosition(), randomVelocity(), 1);
