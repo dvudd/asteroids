@@ -508,10 +508,19 @@ int main(int argc, char* argv[])
         }
 
         // Spawn enemies
+        int enemySize = 1;
         int enemySpawnTimer = randomInt(2000, 5000);
         if (enemyCooldown.getElapsedTime().asMilliseconds() >= enemySpawnTimer)
         {
-            spawnAsteroid(asteroids, randomPosition(), randomVelocity(), 1);
+            if (playerScore >= 200)
+            {
+                enemySize = randomInt(2, 3);
+            }
+            else if (playerScore >= 100)
+            {
+                enemySize = randomInt(1, 2);
+            }
+            spawnAsteroid(asteroids, randomPosition(), randomVelocity(), enemySize);
             enemyCooldown.restart();
         }
 
