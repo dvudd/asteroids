@@ -1,5 +1,5 @@
 {
-  description = "SFML C++ project dev shell";
+  description = "Asteroids SFML Development environment";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -17,11 +17,11 @@
         pkg-config
         clang-tools
 
-        xorg.libXrandr
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libX11
-        xorg.libXext
+        libxrandr
+        libxcursor
+        libxi
+        libx11
+        libxext
         udev
         freetype
         flac
@@ -39,12 +39,16 @@
         libglvnd
         mesa
         udev
-        xorg.libX11
-        xorg.libXrandr
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXext
+        libx11
+        libxrandr
+        libxcursor
+        libxi
+        libxext
       ]);
+      shellHook = ''
+        echo "Good luck, Have fun!"
+        export SHELL=$(which zsh)
+      '';
     };
   };
 }
