@@ -1,10 +1,5 @@
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
 #include <print>
 #include <random>
-#include <string>
-#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
