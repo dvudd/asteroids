@@ -15,8 +15,11 @@
 #include <imgui-SFML.h>
 
 const bool debug = true;
-const int windowWidth = 1920;
-const int windowHeight = 1080;
+
+// Read the current screen resolution.
+const sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+const unsigned int windowWidth = desktop.size.x;
+const unsigned int windowHeight = desktop.size.y;
 
 struct Bullet
 {
@@ -233,7 +236,7 @@ int main(int argc, char* argv[])
     // top-left of the window is (0,0) and bottom-right is (w,h)
     // you will have to read these from the config file
 
-    sf::RenderWindow window(sf::VideoMode({ windowWidth, windowHeight}), "Asteroids");
+    sf::RenderWindow window(sf::VideoMode({ windowWidth, windowHeight}), "Asteroids", sf::State::Fullscreen);
     window.setFramerateLimit(60);
 
     // initialize imgui and create a clock used for its internal timing
