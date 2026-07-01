@@ -108,6 +108,7 @@ int randomInt(int min, int max)
     return random;
 }
 
+/* Rounds the vector values to its closest integrer */
 sf::Vector2f round(const sf::Vector2f vector)
 {
     return sf::Vector2f{ std::round(vector.x), std::round(vector.y) };
@@ -168,6 +169,7 @@ sf::Vector2f randomVelocity()
     return velocity;
 }
 
+/* Returns a random values between -0.02f and +0.02f */
 float randomRotation()
 {
     float randomSpeed = static_cast<float>(std::rand()) / RAND_MAX;
