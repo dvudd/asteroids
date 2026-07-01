@@ -354,6 +354,10 @@ int main(int argc, char* argv[])
     constexpr float PI = 3.14159265f;
     float thrust = 0.09f;
     float drag = 0.999f;
+    float turnAngle = 0.f;
+    float turnSpeed = 2.f;
+    float turnMax = 4.f;
+    float turnDrag = .8f;
 
     /* GUI LOGIC */
     bool drawText = true;
@@ -429,13 +433,18 @@ int main(int argc, char* argv[])
         // Rotate the ship to the left
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
         {
-            player.rotate(sf::degrees(-3));
+            //player.rotate(sf::degrees(-3));
+            turnAngle -= turnSpeed;
         }
         // Rotate the ship to the right
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
         {
-            player.rotate(sf::degrees(3));
+            //player.rotate(sf::degrees(3));
+            turnAngle += turnSpeed;
         }
+        turnAngle = std::clamp(turnAngle, -turnMax, turnMax);
+        turnAngle *= turnDrag;
+        player.rotate(sf::degrees(turnAngle));
 
         // Calculate which way the player is facing.
         float angleFloat = player.getRotation().asRadians();
