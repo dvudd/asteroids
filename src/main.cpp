@@ -359,10 +359,10 @@ int main(int argc, char* argv[])
     constexpr float PI = 3.14159265f;
     float thrust = 0.09f;
     float drag = 0.999f;
-    float turnAngle = 0.f;
-    float turnSpeed = 2.f;
-    float turnMax = 4.f;
-    float turnDrag = .8f;
+    float turnVelocity = 0.f;
+    float turnAcceleration = .25f;
+    float turnMaxSpeed = 4.f;
+    float turnFriction = .92f;
 
     /* GUI LOGIC */
     bool drawText = true;
@@ -436,27 +436,36 @@ int main(int argc, char* argv[])
         }
 
         // Rotate the ship to the left
+        bool isTurning = false;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
         {
-            //player.rotate(sf::degrees(-3));
-            turnAngle -= turnSpeed;
+            isTurning = true;
+            turnVelocity -= turnAcceleration;
         }
         // Rotate the ship to the right
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
         {
-            //player.rotate(sf::degrees(3));
-            turnAngle += turnSpeed;
+            isTurning = true;
+            turnVelocity += turnAcceleration;
         }
-        turnAngle = std::clamp(turnAngle, -turnMax, turnMax);
-        turnAngle *= turnDrag;
-        player.rotate(sf::degrees(turnAngle));
 
-        // Calculate which way the player is facing.
-        float angleFloat = player.getRotation().asRadians();
+        // Restrict the max turning velocity
+        turnVelocity = std::clamp(turnVelocity, -turnMaxSpeed, turnMaxSpeed);
 
+        // Apply friction when the player isn't turning.
+        if (!isTurning)
+        {
+            turnVelocity *= turnFriction;
+        }
+
+        // Apply the rotation to the player
+        player.rotate(sf::degrees(turnVelocity));
+
+        // Read which way the player is facing and convert it into a vector.
+        float playerAngle = player.getRotation().asRadians();
         sf::Vector2f forward{
-            std::cos(angleFloat),
-            std::sin(angleFloat)
+            std::cos(playerAngle),
+            std::sin(playerAngle)
         };
 
         // Apply thrust
