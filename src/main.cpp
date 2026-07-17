@@ -361,8 +361,8 @@ int main(int argc, char* argv[])
     float drag = 0.999f;
     float turnVelocity = 0.f;
     float turnAcceleration = .25f;
-    float turnMaxSpeed = 4.f;
-    float turnFriction = .92f;
+    float turnMaxSpeed = 3.95f;
+    float turnFriction = .85f;
 
     /* GUI LOGIC */
     bool drawText = true;
