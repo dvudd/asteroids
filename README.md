@@ -12,3 +12,4 @@ The executable is located in build/bin
 
 ## Credits
 [Space Shooter Pack by anim86](https://anim86.itch.io/space-shoter-starter-pack)
+[Pixelify Sans](https://github.com/eifetx/Pixelify-Sans)

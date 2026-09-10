@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
     sf::Font myFont;
 
     // attempt to load the font from a file
-    if (!myFont.openFromFile("assets/fonts/ubuntu-mono.ttf"))
+    if (!myFont.openFromFile("assets/fonts/PixelifySans-Regular.ttf"))
     {
         // if we can't load the font, print an error to the error console and exit
         std::print("Could not load font!\n");
