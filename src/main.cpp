@@ -274,16 +274,6 @@ int main(int argc, char* argv[])
         std::exit(-1);
     }
 
-    // set up the text object that will be drawn to the screen
-    sf::Text text(myFont, "Sample Text", 24);
-
-    // position the top-left corner of the text so that the text alignt on the bottom
-    // text character size is in pixels, so move the text up from the bottom by its wHeight
-    text.setPosition({ 0, windowHeight - (float)text.getCharacterSize() });
-
-    // set up a character array to set the text
-    char displayString[255] = "Sample Text";
-
     /* PLAYER LOGIC */
     // create the player shape
     sf::CircleShape player(40.f, 60);
@@ -356,6 +346,7 @@ int main(int argc, char* argv[])
     debrisSprite.setOrigin({48.f, 43.5f});
 
     /* PHYSICS LOGIC */
+    bool runGame = true;
     constexpr float PI = 3.14159265f;
     float thrust = 0.09f;
     float drag = 0.999f;
@@ -363,10 +354,14 @@ int main(int argc, char* argv[])
     float turnAcceleration = .25f;
     float turnMaxSpeed = 3.95f;
     float turnFriction = .85f;
+    bool isThrusting = false;
 
     /* GUI LOGIC */
     bool drawText = true;
     bool drawHitbox = false;
+    sf::Text pauseText(myFont, "PAUSED", 64);
+    pauseText.setPosition({(float)windowWidth / 2 - 96, (float)windowHeight / 4});
+
     // Score
     int playerScore = 0;
     sf::Text score(myFont, std::to_string(playerScore), 48);
@@ -399,67 +394,29 @@ int main(int argc, char* argv[])
         // draw the UI
         if (debug) {
             ImGui::Begin("Debug Screen");
-            ImGui::Text("Window Text!");
-            //ImGui::SameLine();
-            ImGui::Checkbox("Draw Text", &drawText);
-            ImGui::Checkbox("Draw Hitbox", &drawHitbox);
+            ImGui::Text("Screen Size: %dx%d", windowWidth, windowHeight);
             ImGui::Text("Player Hitpoints: %d", playerHitpoints);
             ImGui::Text("Active Bullets: %zu", bullets.size());
             ImGui::Text("Active Asteroids: %zu", asteroids.size());
             ImGui::Text("Active Debris: %zu", debris.size());
-            ImGui::InputText("Text", displayString, 255);
-            if (ImGui::Button("Set Text"))
+            if (ImGui::Button("Pause Game"))
             {
-               text.setString(std::to_string(playerScore));
+               runGame = !runGame;
             }
-            if (ImGui::Button("Spawn Small Asteroid"))
+            if (ImGui::Button("Exit Game"))
             {
-                spawnAsteroid(asteroids, randomPosition(), randomVelocity(), 1);
-            }
-            if (ImGui::Button("Spawn Medium Asteroid"))
-            {
-                spawnAsteroid(asteroids, randomPosition(), randomVelocity(), 2);
-            }
-            if (ImGui::Button("Spawn Big Asteroid"))
-            {
-                spawnAsteroid(asteroids, randomPosition(), randomVelocity(), 3);
+               return EXIT_SUCCESS;
             }
             ImGui::SameLine();
             ImGui::End();
         };
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            runGame = !runGame;
+        }
 
         // basic rendering function calls
         window.clear();     // clear the window of anything previously drawn
-        if (drawText)       // draw the text if the boolean is true
-        {
-            window.draw(text);
-        }
-
-        // Rotate the ship to the left
-        bool isTurning = false;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-        {
-            isTurning = true;
-            turnVelocity -= turnAcceleration;
-        }
-        // Rotate the ship to the right
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-        {
-            isTurning = true;
-            turnVelocity += turnAcceleration;
-        }
-
-        // Restrict the max turning velocity
-        turnVelocity = std::clamp(turnVelocity, -turnMaxSpeed, turnMaxSpeed);
-
-        // Apply friction when the player isn't turning.
-        if (!isTurning)
-        {
-            turnVelocity *= turnFriction;
-        }
-
-        // Apply the rotation to the player
-        player.rotate(sf::degrees(turnVelocity));
 
         // Read which way the player is facing and convert it into a vector.
         float playerAngle = player.getRotation().asRadians();
@@ -468,181 +425,217 @@ int main(int argc, char* argv[])
             std::sin(playerAngle)
         };
 
-        // Apply thrust
-        bool isThrusting = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
-        if (isThrusting)
+        if (runGame)
         {
-            playerVelocity += forward * thrust;
-        }
-
-        // Apply drag
-        playerVelocity *= drag;
-
-        // Update player Velocity
-        playerPosition += playerVelocity;
-
-        // Player wrapping around screen
-        sf::FloatRect bounds = player.getGlobalBounds();
-        float halfWidth = bounds.size.x / 2.f;
-        float halfHeight = bounds.size.y / 2.f;
-
-        // X axis
-        if (playerPosition.x > windowWidth + halfWidth)
-        {
-            playerPosition.x = 0 - halfWidth;
-        }
-        else if (playerPosition.x < 0 - halfWidth)
-        {
-            playerPosition.x = windowWidth + halfWidth;
-        }
-        // Y axis
-        if (playerPosition.y > windowHeight + halfHeight)
-        {
-            playerPosition.y = 0 - halfHeight;
-        }
-        else if (playerPosition.y < 0 - halfHeight)
-        {
-            playerPosition.y = windowHeight + halfHeight;
-        }
-
-        // Update Player Position
-        player.setPosition(playerPosition);
-        ship.setPosition(playerPosition);
-        ship.setRotation(player.getRotation() + sf::degrees(90));
-
-        // FIRE ZE MISSILES
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && weaponCooldown.getElapsedTime().asMilliseconds() >= bulletCooldown)
-        {
-            sf::Vector2f bulletPosition = playerPosition + forward * bulletOffset;
-            sf::Vector2f bulletVelocity = playerVelocity + forward * bulletSpeed;
-            bullets.push_back(Bullet{bulletPosition, bulletVelocity});
-            weaponCooldown.restart();
-        }
-
-        // Update Bullets
-        for (auto& bullet : bullets)
-        {
-            bullet.update();
-        }
-
-        // Spawn enemies
-        int enemySize = 1;
-        int enemySpawnTimer = randomInt(2000, 5000);
-        if (enemyCooldown.getElapsedTime().asMilliseconds() >= enemySpawnTimer)
-        {
-            if (playerScore >= 200)
+            // Rotate the ship to the left
+            bool isTurning = false;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
             {
-                enemySize = randomInt(2, 3);
+                isTurning = true;
+                turnVelocity -= turnAcceleration;
             }
-            else if (playerScore >= 100)
+            // Rotate the ship to the right
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
             {
-                enemySize = randomInt(1, 2);
+                isTurning = true;
+                turnVelocity += turnAcceleration;
             }
-            spawnAsteroid(asteroids, randomPosition(), randomVelocity(), enemySize);
-            enemyCooldown.restart();
-        }
 
-        // Update Asteroids
-        for (auto& asteroid : asteroids)
-        {
-            asteroid.update();
-        }
+            // Restrict the max turning velocity
+            turnVelocity = std::clamp(turnVelocity, -turnMaxSpeed, turnMaxSpeed);
 
-        // Bullets Collision detection
-        for (auto& bullet : bullets)
-        {
+            // Apply friction when the player isn't turning.
+            if (!isTurning)
+            {
+                turnVelocity *= turnFriction;
+            }
+
+            // Apply the rotation to the player
+            player.rotate(sf::degrees(turnVelocity));
+
+            isThrusting = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
+
+            // Apply thrust
+            if (isThrusting)
+            {
+                playerVelocity += forward * thrust;
+            }
+
+            // Apply drag
+            playerVelocity *= drag;
+
+            // Update player Velocity
+            playerPosition += playerVelocity;
+
+            // Player wrapping around screen
+            sf::FloatRect bounds = player.getGlobalBounds();
+            float halfWidth = bounds.size.x / 2.f;
+            float halfHeight = bounds.size.y / 2.f;
+
+            // X axis
+            if (playerPosition.x > windowWidth + halfWidth)
+            {
+                playerPosition.x = 0 - halfWidth;
+            }
+            else if (playerPosition.x < 0 - halfWidth)
+            {
+                playerPosition.x = windowWidth + halfWidth;
+            }
+            // Y axis
+            if (playerPosition.y > windowHeight + halfHeight)
+            {
+                playerPosition.y = 0 - halfHeight;
+            }
+            else if (playerPosition.y < 0 - halfHeight)
+            {
+                playerPosition.y = windowHeight + halfHeight;
+            }
+
+            // Update Player Position
+            player.setPosition(playerPosition);
+            ship.setPosition(playerPosition);
+            ship.setRotation(player.getRotation() + sf::degrees(90));
+
+            // FIRE ZE MISSILES
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && weaponCooldown.getElapsedTime().asMilliseconds() >= bulletCooldown)
+            {
+                sf::Vector2f bulletPosition = playerPosition + forward * bulletOffset;
+                sf::Vector2f bulletVelocity = playerVelocity + forward * bulletSpeed;
+                bullets.push_back(Bullet{bulletPosition, bulletVelocity});
+                weaponCooldown.restart();
+            }
+
+            // Update Bullets
+            for (auto& bullet : bullets)
+            {
+                bullet.update();
+            }
+
+            // Spawn enemies
+            int enemySize = 1;
+            int enemySpawnTimer = randomInt(2000, 5000);
+            if (enemyCooldown.getElapsedTime().asMilliseconds() >= enemySpawnTimer)
+            {
+                if (playerScore >= 200)
+                {
+                    enemySize = randomInt(2, 3);
+                }
+                else if (playerScore >= 100)
+                {
+                    enemySize = randomInt(1, 2);
+                }
+                spawnAsteroid(asteroids, randomPosition(), randomVelocity(), enemySize);
+                enemyCooldown.restart();
+            }
+
+            // Update Asteroids
             for (auto& asteroid : asteroids)
             {
-                sf::Vector2f difference = bullet.position - asteroid.position;
+                asteroid.update();
+            }
+
+            // Bullets Collision detection
+            for (auto& bullet : bullets)
+            {
+                for (auto& asteroid : asteroids)
+                {
+                    sf::Vector2f difference = bullet.position - asteroid.position;
+                    float distanceSquared =
+                        difference.x * difference.x +
+                        difference.y * difference.y;
+
+                    float combinedRadius = bullet.radius + asteroid.radius;
+                    if (distanceSquared <= combinedRadius * combinedRadius)
+                    {
+                        // Collision!
+                        asteroid.alive = false;
+                        bullet.life = 0;
+                        break;
+                    }
+                }
+            }
+
+            // Remove dead bullets
+            bullets.erase(
+                std::remove_if(bullets.begin(), bullets.end(),
+                    [&](const Bullet& bullet)
+                    {
+                        return bullet.isDead();
+                    }),
+                bullets.end()
+            );
+
+            // Asteroid Collision detection
+            std::vector<Asteroid> newAsteroids;
+            for (auto& asteroid : asteroids)
+            {
+
+                // Calculate distance between asteroid and the player.
+                sf::Vector2f difference = player.getPosition() - asteroid.position;
                 float distanceSquared =
                     difference.x * difference.x +
                     difference.y * difference.y;
 
-                float combinedRadius = bullet.radius + asteroid.radius;
+                // Collision
+                float combinedRadius = player.getRadius() + asteroid.radius;
                 if (distanceSquared <= combinedRadius * combinedRadius)
                 {
-                    // Collision!
+                    if (!playerInvulnerable)
+                    {
+                        playerHitpoints -= 1;
+                        playerInvulnerable = true;
+                        damageClock.restart();
+                    }
                     asteroid.alive = false;
-                    bullet.life = 0;
-                    break;
+                }
+
+                // Split dead asteroids and award points
+                if (!asteroid.alive)
+                {
+                    // Split the asteroid
+                    playerScore += splitAsteroid(newAsteroids, asteroid.position, asteroid.size);
+                    if (asteroid.size <= 1)
+                    {
+                        spawnDebris(debris, asteroid.position);
+                    }
                 }
             }
-        }
 
-        // Remove dead bullets
-        bullets.erase(
-            std::remove_if(bullets.begin(), bullets.end(),
-                [&](const Bullet& bullet)
-                {
-                    return bullet.isDead();
-                }),
-            bullets.end()
-        );
+            // Remove dead asteroids
+            asteroids.erase(
+                std::remove_if(asteroids.begin(), asteroids.end(),
+                    [](const Asteroid& asteroid)
+                    {
+                        return asteroid.isDead();
+                    }),
+                asteroids.end()
+            );
 
-        // Asteroid Collision detection
-        std::vector<Asteroid> newAsteroids;
-        for (auto& asteroid : asteroids)
-        {
+            // Merge the new asteroids into the asteroids vector
+            asteroids.insert(asteroids.end(), newAsteroids.begin(), newAsteroids.end());
 
-            // Calculate distance between asteroid and the player.
-            sf::Vector2f difference = player.getPosition() - asteroid.position;
-            float distanceSquared =
-                difference.x * difference.x +
-                difference.y * difference.y;
-
-            // Collision
-            float combinedRadius = player.getRadius() + asteroid.radius;
-            if (distanceSquared <= combinedRadius * combinedRadius)
+            // Update Debris
+            for (auto& bits : debris)
             {
-                if (!playerInvulnerable)
-                {
-                    playerHitpoints -= 1;
-                    playerInvulnerable = true;
-                    damageClock.restart();
-                }
-                asteroid.alive = false;
+                bits.update();
             }
 
-            // Split dead asteroids and award points
-            if (!asteroid.alive)
-            {
-                // Split the asteroid
-                playerScore += splitAsteroid(newAsteroids, asteroid.position, asteroid.size);
-                if (asteroid.size <= 1)
-                {
-                    spawnDebris(debris, asteroid.position);
-                }
-            }
+            // Remove dead debris
+            debris.erase(
+                std::remove_if(debris.begin(), debris.end(),
+                    [](const Debris& debris)
+                    {
+                        return debris.isDead();
+                    }),
+                debris.end()
+            );
         }
-
-        // Remove dead asteroids
-        asteroids.erase(
-            std::remove_if(asteroids.begin(), asteroids.end(),
-                [](const Asteroid& asteroid)
-                {
-                    return asteroid.isDead();
-                }),
-            asteroids.end()
-        );
-
-        // Merge the new asteroids into the asteroids vector
-        asteroids.insert(asteroids.end(), newAsteroids.begin(), newAsteroids.end());
-
-        // Update Debris
-        for (auto& bits : debris)
+        else
         {
-            bits.update();
+            window.draw(pauseText);
         }
 
-        // Remove dead debris
-        debris.erase(
-            std::remove_if(debris.begin(), debris.end(),
-                [](const Debris& debris)
-                {
-                    return debris.isDead();
-                }),
-            debris.end()
-        );
+        /* EVERYTHING BELOW HERE WILL RUN EVEN IF THE GAME IS PAUSED */
 
         // Draw Bullets
         for (const auto& bullet : bullets)
