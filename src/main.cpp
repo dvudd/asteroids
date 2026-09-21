@@ -386,6 +386,13 @@ int main(int argc, char* argv[])
             {
                 window.close();
             }
+
+            // Pause the game when ESC is released.
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyReleased>()) {
+                if (keyPressed->code == sf::Keyboard::Key::Escape) {
+                    runGame = !runGame;
+                }
+            }
         }
 
         // update imgui for this frame with the time that the last frame took
@@ -399,21 +406,18 @@ int main(int argc, char* argv[])
             ImGui::Text("Active Bullets: %zu", bullets.size());
             ImGui::Text("Active Asteroids: %zu", asteroids.size());
             ImGui::Text("Active Debris: %zu", debris.size());
-            if (ImGui::Button("Pause Game"))
+            const char* pauseButton = runGame ? "Pause" : "Resume";
+            if (ImGui::Button(pauseButton))
             {
-               runGame = !runGame;
+                runGame = !runGame;
             }
             if (ImGui::Button("Exit Game"))
             {
-               return EXIT_SUCCESS;
+                window.close();
             }
             ImGui::SameLine();
             ImGui::End();
         };
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
-        {
-            runGame = !runGame;
-        }
 
         // basic rendering function calls
         window.clear();     // clear the window of anything previously drawn
