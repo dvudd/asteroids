@@ -419,6 +419,12 @@ int main(int argc, char* argv[])
             ImGui::End();
         };
 
+        // Break the window loop to exit cleanly.
+        if (!window.isOpen())
+        {
+            break;
+        }
+
         // basic rendering function calls
         window.clear();     // clear the window of anything previously drawn
 
@@ -721,6 +727,8 @@ int main(int argc, char* argv[])
         window.display();
     }
 
-    return 0;
+    // Close the program.
+    ImGui::SFML::Shutdown();
+    return EXIT_SUCCESS;
 
 }
