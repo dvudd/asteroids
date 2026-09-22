@@ -231,6 +231,20 @@ int splitAsteroid(std::vector<Asteroid>& asteroids, sf::Vector2f position, int s
     return earnedScore;
 }
 
+/* Renders a text, centered (x-axis) in the ImGUI window */
+auto centerMenuText = [](const char* text)
+{
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(text).x) * 0.5f);
+    ImGui::Text("%s", text);
+};
+
+/* Renders a button, centered (x-axis) in the ImGUI window */
+auto centerMenuButton = [](const char* label, ImVec2 size) -> bool
+{
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    return ImGui::Button(label, size);
+};
+
 int main(int argc, char* argv[])
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -347,6 +361,7 @@ int main(int argc, char* argv[])
 
     /* PHYSICS LOGIC */
     bool runGame = false;
+    bool gameStarted = false;
     constexpr float PI = 3.14159265f;
     float thrust = 0.09f;
     float drag = 0.999f;
@@ -420,17 +435,29 @@ int main(int argc, char* argv[])
         // draw the main menu
         if(!runGame)
         {
-            ImGui::SetNextWindowPos(ImVec2((float)windowHeight / 2, (float)windowWidth / 6), ImGuiCond_Always);
-            ImGui::SetNextWindowSize(ImVec2(500.0f, 500.0f), ImGuiCond_Always);
+            // Set menu size and position
+            sf::Vector2f menuSize = {500.0f, 450.0f};
+            ImVec2 menuPos(((float)windowWidth - menuSize.x) * 0.5f, ((float)windowHeight - menuSize.y) * 0.5f);
+            ImGui::SetNextWindowPos(menuPos, ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(menuSize), ImGuiCond_Always);
+
+            const char* startButton = !gameStarted ? "START" : "RESUME";
+            ImGui::GetIO().FontGlobalScale = 3.5f;
+
             ImGui::Begin("Menu", nullptr, window_flags);
-            const char* pauseButton = runGame ? "Pause" : "Resume";
-            ImGui::SetCursorPosX((200.0f));
-            ImGui::Text("PAUSED");
-            if (ImGui::Button(pauseButton, ImVec2(475.0f, 100.0f)))
+            centerMenuText("ASTEROIDS");
+            ImGui::Spacing();
+            if (centerMenuButton(startButton, ImVec2(450.0f, 100.0f)))
             {
                 runGame = !runGame;
             }
-            if (ImGui::Button("Exit Game", ImVec2(475.0f, 100.0f)))
+            ImGui::Spacing();
+            if (centerMenuButton("OPTIONS", ImVec2(450.0f, 100.0f)))
+            {
+                // TODO
+            }
+            ImGui::Spacing();
+            if (centerMenuButton("EXIT", ImVec2(450.0f, 100.0f)))
             {
                 window.close();
             }
@@ -455,6 +482,7 @@ int main(int argc, char* argv[])
 
         if (runGame)
         {
+            gameStarted = true;
             // Rotate the ship to the left
             bool isTurning = false;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
@@ -725,14 +753,19 @@ int main(int argc, char* argv[])
             }
         }
 
-        // Draw the player
+        // Draw the engine flames
         if (isThrusting)
         {
             flame.setPosition(playerPosition - forward * engineOffset);
             flame.setRotation(ship.getRotation());
             window.draw(flame);
         }
-        window.draw(ship);
+
+        // Only draw the player after the game has started
+        if (gameStarted)
+        {
+            window.draw(ship);
+        }
 
         // Draw the UI last so it's on top
         score.setString(std::to_string(playerScore));
