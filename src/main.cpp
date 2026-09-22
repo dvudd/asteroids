@@ -346,7 +346,7 @@ int main(int argc, char* argv[])
     debrisSprite.setOrigin({48.f, 43.5f});
 
     /* PHYSICS LOGIC */
-    bool runGame = true;
+    bool runGame = false;
     constexpr float PI = 3.14159265f;
     float thrust = 0.09f;
     float drag = 0.999f;
@@ -361,6 +361,13 @@ int main(int argc, char* argv[])
     bool drawHitbox = false;
     sf::Text pauseText(myFont, "PAUSED", 64);
     pauseText.setPosition({(float)windowWidth / 2 - 96, (float)windowHeight / 4});
+
+    // Main Menu Settings
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar         |
+                                    ImGuiWindowFlags_NoMove             |
+                                    ImGuiWindowFlags_NoResize           |
+                                    ImGuiWindowFlags_NoCollapse         |
+                                    ImGuiWindowFlags_NoSavedSettings;
 
     // Score
     int playerScore = 0;
@@ -398,7 +405,7 @@ int main(int argc, char* argv[])
         // update imgui for this frame with the time that the last frame took
         ImGui::SFML::Update(window, deltaClock.restart());
 
-        // draw the UI
+        // draw the debug UI
         if (debug) {
             ImGui::Begin("Debug Screen");
             ImGui::Text("Screen Size: %dx%d", windowWidth, windowHeight);
@@ -406,18 +413,29 @@ int main(int argc, char* argv[])
             ImGui::Text("Active Bullets: %zu", bullets.size());
             ImGui::Text("Active Asteroids: %zu", asteroids.size());
             ImGui::Text("Active Debris: %zu", debris.size());
-            const char* pauseButton = runGame ? "Pause" : "Resume";
-            if (ImGui::Button(pauseButton))
-            {
-                runGame = !runGame;
-            }
-            if (ImGui::Button("Exit Game"))
-            {
-                window.close();
-            }
             ImGui::SameLine();
             ImGui::End();
         };
+
+        // draw the main menu
+        if(!runGame)
+        {
+            ImGui::SetNextWindowPos(ImVec2((float)windowHeight / 2, (float)windowWidth / 6), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(500.0f, 500.0f), ImGuiCond_Always);
+            ImGui::Begin("Menu", nullptr, window_flags);
+            const char* pauseButton = runGame ? "Pause" : "Resume";
+            ImGui::SetCursorPosX((200.0f));
+            ImGui::Text("PAUSED");
+            if (ImGui::Button(pauseButton, ImVec2(475.0f, 100.0f)))
+            {
+                runGame = !runGame;
+            }
+            if (ImGui::Button("Exit Game", ImVec2(475.0f, 100.0f)))
+            {
+                window.close();
+            }
+            ImGui::End();
+        }
 
         // Break the window loop to exit cleanly.
         if (!window.isOpen())
@@ -639,10 +657,6 @@ int main(int argc, char* argv[])
                     }),
                 debris.end()
             );
-        }
-        else
-        {
-            window.draw(pauseText);
         }
 
         /* EVERYTHING BELOW HERE WILL RUN EVEN IF THE GAME IS PAUSED */
