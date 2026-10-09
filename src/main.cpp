@@ -248,10 +248,8 @@ auto centerMenuButton = [](const char* label, ImVec2 size) -> bool
 int main(int argc, char* argv[])
 {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
-    // create a new window of size w*h pixels
-    // top-left of the window is (0,0) and bottom-right is (w,h)
-    // you will have to read these from the config file
 
+    // create a new window of size w*h pixels
     sf::RenderWindow window(sf::VideoMode({ windowWidth, windowHeight}), "Asteroids", sf::State::Fullscreen);
     window.setFramerateLimit(60);
 
@@ -422,7 +420,7 @@ int main(int argc, char* argv[])
 
         // draw the debug UI
         if (debug) {
-            ImGui::Begin("Debug Screen");
+            ImGui::Begin("DEBUG");
             ImGui::Text("Screen Size: %dx%d", windowWidth, windowHeight);
             ImGui::Text("Player Hitpoints: %d", playerHitpoints);
             ImGui::Text("Active Bullets: %zu", bullets.size());
@@ -441,12 +439,12 @@ int main(int argc, char* argv[])
             ImGui::SetNextWindowPos(menuPos, ImGuiCond_Always);
             ImGui::SetNextWindowSize(ImVec2(menuSize), ImGuiCond_Always);
 
-            const char* startButton = !gameStarted ? "START" : "RESUME";
             ImGui::GetIO().FontGlobalScale = 3.5f;
 
             ImGui::Begin("Menu", nullptr, window_flags);
             centerMenuText("ASTEROIDS");
             ImGui::Spacing();
+            const char* startButton = !gameStarted ? "START" : "RESUME";
             if (centerMenuButton(startButton, ImVec2(450.0f, 100.0f)))
             {
                 runGame = !runGame;
@@ -470,8 +468,8 @@ int main(int argc, char* argv[])
             break;
         }
 
-        // basic rendering function calls
-        window.clear();     // clear the window of anything previously drawn
+        // clear the window of anything previously drawn
+        window.clear();
 
         // Read which way the player is facing and convert it into a vector.
         float playerAngle = player.getRotation().asRadians();
