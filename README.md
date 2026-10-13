@@ -3,12 +3,12 @@
 
 ## Build
    ```
-   cmake -B build
+   cmake -B build -G Ninja
    cmake --build build
    ```
 Note: If you're using NixOS, use the provided flake `nix develop` before building.
 
-The executable is located in build/bin
+The executable is located in `build/bin`
 
 ## Credits
 [Space Shooter Pack by anim86](https://anim86.itch.io/space-shoter-starter-pack)

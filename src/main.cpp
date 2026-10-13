@@ -13,6 +13,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <imgui.h>
 #include <imgui-SFML.h>
+#include "assets.hpp"
 
 const bool debug = true;
 
@@ -269,6 +270,7 @@ int main(int argc, char* argv[])
     // scale the imgui ui and text size by 2
     ImGui::GetStyle().ScaleAllSizes(2.0f);
     ImGui::GetIO().FontGlobalScale = 2.0f;
+    ImGui::GetIO().IniFilename = nullptr;
 
     // the imgui color {r, g, b} wheel requires floats from 0-1
     // sfml will require instead of uint8_t from 0-255
@@ -278,11 +280,9 @@ int main(int argc, char* argv[])
     // let's load a font so we can display some text
     sf::Font myFont;
 
-    // attempt to load the font from a file
-    if (!myFont.openFromFile("assets/fonts/PixelifySans-Regular.ttf"))
+    if (!myFont.openFromMemory(fonts_PixelifySans_Regular_ttf, fonts_PixelifySans_Regular_ttf_len))
     {
-        // if we can't load the font, print an error to the error console and exit
-        std::print("Could not load font!\n");
+        std::print("Could not load font from memory!\n");
         std::exit(-1);
     }
 
@@ -302,13 +302,13 @@ int main(int argc, char* argv[])
     bool playerInvulnerable = false;
 
     // Create the player sprite
-    sf::Texture playerTexture("assets/textures/spaceship.png");
+    sf::Texture playerTexture(textures_spaceship_png, textures_asteroid_big_png_len);
     sf::Sprite ship(playerTexture);
     ship.setScale({.5f, .5f});
     ship.setOrigin({120.f, 100.f});
 
     // Create the player engine flame sprite
-    sf::Texture flameTexture("assets/textures/engine_flame.png");
+    sf::Texture flameTexture(textures_engine_flame_png, textures_engine_flame_png_len);
     sf::Sprite flame(flameTexture);
     flame.setScale({.5f, .5f});
     flame.setOrigin({120.5f, 29.f});
@@ -321,7 +321,7 @@ int main(int argc, char* argv[])
     float bulletSpeed = 15.f;
 
     // Create the bullet sprite
-    sf::Texture bulletTexture("assets/textures/bullet.png");
+    sf::Texture bulletTexture(textures_bullet_png, textures_bullet_png_len);
     sf::Sprite bulletSprite(bulletTexture);
     bulletSprite.setScale({.7f, .7f});
     bulletSprite.setOrigin({40.5f, 66.f});
@@ -333,26 +333,25 @@ int main(int argc, char* argv[])
     sf::Vector2f asteroidVel = {1.f, 1.f};
 
     // Create the small asteroid sprite
-    sf::Texture smallAsteroidTexture("assets/textures/asteroid_small.png");
+    sf::Texture smallAsteroidTexture(textures_asteroid_small_png, textures_asteroid_small_png_len);
     sf::Sprite smallAsteroid(smallAsteroidTexture);
     smallAsteroid.setScale({.5f, .5f});
     smallAsteroid.setOrigin({48.f, 43.5f});
 
     // Create the medium asteroid sprite
-    sf::Texture mediumAsteroidTexture("assets/textures/asteroid_medium.png");
+    sf::Texture mediumAsteroidTexture(textures_asteroid_medium_png, textures_asteroid_medium_png_len);
     sf::Sprite mediumAsteroid(mediumAsteroidTexture);
     mediumAsteroid.setScale({.5f, .5f});
     mediumAsteroid.setOrigin({63.f, 64.f});
 
     // Create the big asteroid sprite
-    sf::Texture bigAsteroidTexture("assets/textures/asteroid_big.png");
+    sf::Texture bigAsteroidTexture(textures_asteroid_big_png, textures_asteroid_big_png_len);
     sf::Sprite bigAsteroid(bigAsteroidTexture);
     bigAsteroid.setScale({.5f, .5f});
     bigAsteroid.setOrigin({96.f, 97.f});
 
     /* DEBRIS LOGIC */
     std::vector<Debris> debris;
-    sf::Texture debrisTexture("assets/textures/asteroid_small.png");
     sf::Sprite debrisSprite(smallAsteroidTexture);
     debrisSprite.setScale({.2f, .2f});
     debrisSprite.setOrigin({48.f, 43.5f});
@@ -370,8 +369,6 @@ int main(int argc, char* argv[])
     bool isThrusting = false;
 
     /* GUI LOGIC */
-    bool drawText = true;
-    bool drawHitbox = false;
     sf::Text pauseText(myFont, "PAUSED", 64);
     pauseText.setPosition({(float)windowWidth / 2 - 96, (float)windowHeight / 4});
 
@@ -420,7 +417,9 @@ int main(int argc, char* argv[])
 
         // draw the debug UI
         if (debug) {
-            ImGui::Begin("DEBUG");
+            ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(600.0f, 300.0f), ImGuiCond_Always);
+            ImGui::Begin("DEBUG", nullptr, window_flags);
             ImGui::Text("Screen Size: %dx%d", windowWidth, windowHeight);
             ImGui::Text("Player Hitpoints: %d", playerHitpoints);
             ImGui::Text("Active Bullets: %zu", bullets.size());
@@ -723,12 +722,6 @@ int main(int argc, char* argv[])
         {
             debrisSprite.setPosition(bits.position);
             window.draw(debrisSprite);
-        }
-
-        // Debug - center the tipDot on the player position
-        if (drawHitbox)
-        {
-            window.draw(player);
         }
 
         // Player damage animation

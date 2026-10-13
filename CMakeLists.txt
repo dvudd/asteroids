@@ -29,7 +29,35 @@ FetchContent_Declare(ImGui-SFML
     SYSTEM)
 FetchContent_MakeAvailable(ImGui-SFML)
 
+file(GLOB_RECURSE ALL_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/assets/*")
+set(GENERATED_ASSETS_HPP "${CMAKE_CURRENT_BINARY_DIR}/assets.hpp")
+set(XXD_COMMAND_LIST "")
+set(FIRST_FILE TRUE)
+
+foreach(ASSET_FILE ${ALL_ASSETS})
+    if(IS_DIRECTORY ${ASSET_FILE})
+        continue()
+    endif()
+    file(RELATIVE_PATH REL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets" ${ASSET_FILE})
+    if(FIRST_FILE)
+        list(APPEND XXD_COMMAND_LIST COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/assets" xxd -i "${REL_PATH}" > ${GENERATED_ASSETS_HPP})
+        set(FIRST_FILE FALSE)
+    else()
+        list(APPEND XXD_COMMAND_LIST COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/assets" xxd -i "${REL_PATH}" >> ${GENERATED_ASSETS_HPP})
+    endif()
+endforeach()
+
+add_custom_command(
+    OUTPUT ${GENERATED_ASSETS_HPP}
+    DEPENDS ${ALL_ASSETS}
+    ${XXD_COMMAND_LIST}
+    COMMENT "Generating assets.hpp"
+)
+
+add_custom_target(GenerateAssets DEPENDS ${GENERATED_ASSETS_HPP})
 add_executable(main src/main.cpp)
+add_dependencies(main GenerateAssets)
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(main PRIVATE cxx_std_23)
 target_link_libraries(main PRIVATE SFML::Graphics ImGui-SFML::ImGui-SFML)
 

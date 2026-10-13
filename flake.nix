@@ -16,7 +16,6 @@
         git
         pkg-config
         clang-tools
-
         libxrandr
         libxcursor
         libxi
@@ -32,6 +31,7 @@
         harfbuzz
         mbedtls
         libssh2
+        xxd
       ];
 
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
