@@ -351,6 +351,13 @@ int main(int argc, char* argv[])
     bigAsteroid.setScale({.5f, .5f});
     bigAsteroid.setOrigin({96.f, 97.f});
 
+    // Create the background sprite
+    sf::Vector2f backgroundOffset = {0.f, 0.f};
+    sf::Texture backgroundTexture(textures_background_png, textures_background_png_len);
+    sf::Sprite backgroundSprite(backgroundTexture);
+    backgroundTexture.setRepeated(true);
+    backgroundSprite.setTextureRect(sf::IntRect({0,0}, {static_cast<int>(windowWidth), static_cast<int>(windowHeight)}));
+
     /* DEBRIS LOGIC */
     std::vector<Debris> debris;
     sf::Sprite debrisSprite(smallAsteroidTexture);
@@ -691,9 +698,17 @@ int main(int argc, char* argv[])
                     }),
                 debris.end()
             );
+
+            // Update the background
+            backgroundOffset.x += playerVelocity.x * 0.5f;
+            backgroundOffset.y += playerVelocity.y * 0.5f;
+            backgroundSprite.setTextureRect(sf::IntRect({static_cast<int>(backgroundOffset.x), static_cast<int>(backgroundOffset.y)}, {static_cast<int>(windowWidth), static_cast<int>(windowHeight)}));
         }
 
         /* EVERYTHING BELOW HERE WILL RUN EVEN IF THE GAME IS PAUSED */
+
+        // Draw the background
+        window.draw(backgroundSprite);
 
         // Draw Bullets
         for (const auto& bullet : bullets)
