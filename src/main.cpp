@@ -1,3 +1,4 @@
+#include <SFML/Window/Window.hpp>
 #include <print>
 #include <random>
 #include <SFML/Graphics.hpp>
@@ -432,6 +433,9 @@ int main(int argc, char* argv[])
         // draw the main menu
         if(!runGame)
         {
+            // Make the mouse cursor visible
+            window.setMouseCursorVisible(true);
+
             // Set menu size and position
             sf::Vector2f menuSize = {500.0f, 450.0f};
             ImVec2 menuPos(((float)windowWidth - menuSize.x) * 0.5f, ((float)windowHeight - menuSize.y) * 0.5f);
@@ -479,7 +483,12 @@ int main(int argc, char* argv[])
 
         if (runGame)
         {
+            // Mark the game as started, otherwise the player sprite wont be drawn.
             gameStarted = true;
+
+            // Hide the mouse while the game is running.
+            window.setMouseCursorVisible(false);
+
             // Rotate the ship to the left
             bool isTurning = false;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
@@ -752,7 +761,7 @@ int main(int argc, char* argv[])
             window.draw(flame);
         }
 
-        // Only draw the player after the game has started
+        // Only draw the player once the game has started
         if (gameStarted)
         {
             window.draw(ship);
